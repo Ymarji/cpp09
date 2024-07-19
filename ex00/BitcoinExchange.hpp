@@ -2,7 +2,11 @@
 #define BITCOINEXCHANGE_HPP
 #include <fstream>
 #include <string>
+#include <iostream>
+#include <map>
+#include <ctime>
 
+#define DB_FILENAME "data.csv"
 class BitcoinExchange
 {
   public:
@@ -11,9 +15,10 @@ class BitcoinExchange
     BitcoinExchange(const BitcoinExchange &) = default;
     BitcoinExchange &operator=(const BitcoinExchange &) = default;
 
+    std::pair<double, double> dataSplit(std::string);
     ~BitcoinExchange();
 
   private:
-    std::ifstream file;
+    std::map<double, double> db;
 };
 #endif // !BITCOINEXCHANGE_HPP

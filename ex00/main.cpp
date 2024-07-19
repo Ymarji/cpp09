@@ -1,12 +1,8 @@
 #include <fstream>
 #include <iostream>
+#include "BitcoinExchange.hpp"
 
 int main(int argc, char *argv[]) {
-  std::string str;
-  std::ifstream myFile(argv[1], std::ios::in);
-  std::getline(myFile, str);
-  std::cout << str << std::endl;
-  myFile.close();
-  
+  BitcoinExchange btc("test");  
   return 0;
 }
