@@ -15,10 +15,14 @@ class BitcoinExchange
     BitcoinExchange(const BitcoinExchange &) = default;
     BitcoinExchange &operator=(const BitcoinExchange &) = default;
 
-    std::pair<double, double> dataSplit(std::string);
+    std::pair<int, double> dataSplit(std::string, char);
+    void validateYear(std::string);
+    void inputData(std::string);
+    void inputData(std::ifstream);
+    
     ~BitcoinExchange();
 
   private:
-    std::map<double, double> db;
+    std::map<long int, double, std::greater<long int> > db;
 };
 #endif // !BITCOINEXCHANGE_HPP
