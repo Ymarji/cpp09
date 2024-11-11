@@ -1,24 +1,25 @@
 #ifndef BITCOINEXCHANGE_HPP
 #define BITCOINEXCHANGE_HPP
 #include <fstream>
-#include <string>
+#include <sstream>
 #include <iostream>
+#include <string>
 #include <map>
-#include <ctime>
+#include <iomanip>
+#include <cstdlib>
+#include <limits.h>
 
 #define DB_FILENAME "data.csv"
 class BitcoinExchange
 {
   public:
-    BitcoinExchange(std::string);
-    BitcoinExchange(std::istream);
-    BitcoinExchange(const BitcoinExchange &) = default;
-    BitcoinExchange &operator=(const BitcoinExchange &) = default;
+    BitcoinExchange();
+    BitcoinExchange(const BitcoinExchange &);
+    BitcoinExchange &operator=(const BitcoinExchange &);
 
     std::pair<int, double> dataSplit(std::string, char);
     void validateYear(std::string);
-    void inputData(std::string);
-    void inputData(std::ifstream);
+    void inputData(const char *);
     
     ~BitcoinExchange();
 

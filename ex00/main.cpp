@@ -2,8 +2,16 @@
 #include <iostream>
 #include "BitcoinExchange.hpp"
 
-int main(int argc, char *argv[]) { 
-  BitcoinExchange btc("test"); 
-  btc.inputData("input.txt");
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cout << "Error: could not open file." << std::endl;
+    return 1;
+  }
+  try {
+    BitcoinExchange btc; 
+    btc.inputData(argv[1]);
+  } catch(std::exception e) {
+    e.what();
+  }
   return 0;
 }

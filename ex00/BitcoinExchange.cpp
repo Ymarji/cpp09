@@ -1,28 +1,30 @@
 #include "BitcoinExchange.hpp"
 #include <exception>
 
-BitcoinExchange::BitcoinExchange(std::string fileName)
+BitcoinExchange::BitcoinExchange()
 {
 	std::ifstream file(DB_FILENAME, std::ios::in);
 	std::string   str;
 	
-	if (!file.good()) // to exeption 
-		exit(1);
+	if (!file.good()){
+		throw std::runtime_error("Error: could not open data.csv file.");
+		return;
+	}
 	std::getline(file, str);	
 	while (std::getline(file, str))
 		this->db.insert(this->dataSplit(str, ','));
 	return;
 }
 
-BitcoinExchange::BitcoinExchange(std::istream file)
-{
-	std::string   str;
+// BitcoinExchange::BitcoinExchange(std::istream file)
+// {
+// 	std::string   str;
 
-	std::getline(file, str);	
-	while (std::getline(file, str))
-		this->db.insert(this->dataSplit(str, ','));
-	return;
-}
+// 	std::getline(file, str);	
+// 	while (std::getline(file, str))
+// 		this->db.insert(this->dataSplit(str, ','));
+// 	return;
+// }
 
 bool isdigit(std::string str, size_t size){
 	return str.find_first_not_of("0123456789") == std::string::npos && str.size() == size;
@@ -41,7 +43,6 @@ void BitcoinExchange::validateYear(std::string str) {
 	month = str.substr(year.size() + 1, pos - year.size() - 1);
 	day = str.substr(pos + 1);
 
-	// std::cout << year << "|" << month << "|" << day << std::endl;
 	if (!isdigit(year, 4) || !isdigit(month, 2) || !isdigit(day, 2)
 	|| (std::atof(month.c_str()) > 12 || std::atof(day.c_str()) > 31))
 	{	
@@ -55,17 +56,39 @@ std::pair<int, double> BitcoinExchange::dataSplit(std::string str, char sign)
 	int day;
 	int month;
 	int year;
+	double exchRate;
 
 	size_t pos = str.find(sign);
 	std::string datePart = str.substr(0, pos);
 	std::string exchangeRate = str.substr(pos + 1);
 	std::sscanf(datePart.c_str(), "%d-%d-%d", &year, &month, &day);
 	this->validateYear(datePart);
+	exchRate = std::atof(exchangeRate.c_str());
 
-	return std::make_pair<long int, double>(10000 * year + 100.00 * month + day, std::atof(exchangeRate.c_str()));
+	if (exchRate < 0) {
+		throw std::runtime_error("Error: not a positive number.");
+	}
+	if (exchRate > INT_MAX) {
+		throw std::runtime_error("Error: too large a number.");
+	}
+
+	return std::make_pair<long int, double>(10000 * year + 100 * month + day, std::atof(exchangeRate.c_str()));
 }
 
-void BitcoinExchange::inputData(std::string filename) {
+std::string formatString(long int date) {
+ 	int year = date / 10000;
+    int month = (date / 100) % 100;
+    int day = date % 100;
+	std::ostringstream oss;
+    
+	oss << std::setfill('0') << std::setw(2) << day << "/"
+    << std::setfill('0') << std::setw(2) << month << "/"
+    << year;
+
+	return oss.str();
+}
+
+void BitcoinExchange::inputData(const char * filename) {
 	std::ifstream file(filename, std::ios::in);
 	std::string str;
 	std::pair<double, double> temp;
@@ -75,9 +98,7 @@ void BitcoinExchange::inputData(std::string filename) {
 		try
 		{
 			temp = this->dataSplit(str, '|');
-			std::cout.unsetf(std::ios::scientific);
-			std::cout << db.lower_bound(temp.first)->first << "\n";
-
+			std::cout << formatString(temp.first) << " => " << temp.second << " = " << db.lower_bound(temp.first)->second * temp.second  << "\n";
 		}
 		catch (const std::exception& ex)
 		{
