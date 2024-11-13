@@ -8,7 +8,6 @@
 class RPN {
     private:
         std::stack<int> rpn;
-        // std::string expression;
     public:
         RPN(std::string);
         RPN(const RPN &);

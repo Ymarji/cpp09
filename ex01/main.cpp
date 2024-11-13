@@ -7,6 +7,12 @@ int main(int argc, char const *argv[])
         std::cerr << "Error" << std::endl;
         return 1;
     }
-    RPN rpn(argv[1]);
+
+    try {
+        RPN rpn(argv[1]);
+    }
+    catch(const std::exception& e) {
+        std::cerr << e.what() << '\n';
+    }
     return 0;
 }

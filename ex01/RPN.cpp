@@ -2,20 +2,13 @@
 
 
 RPN::RPN(std::string expression) {
-    try
+    this->decompose(expression);
+    while (this->rpn.size() != 0)
     {
-        this->decompose(expression);
-        while (this->rpn.size() != 0)
-        {
-            std::cout << this->rpn.top() << " ";
-            this->rpn.pop();
-        }
-        std::cout << std::endl;
+        std::cout << this->rpn.top() << " ";
+        this->rpn.pop();
     }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
+    std::cout << std::endl;
 }
 
 int toInt(std::string str) {
