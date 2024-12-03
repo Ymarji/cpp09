@@ -8,6 +8,8 @@ class PmergeMe {
     private:
         std::vector<int> vBuffer;
         std::deque<int> qBuffer;
+        int imposter;
+        bool isOdd;
     public:
         PmergeMe();
         PmergeMe(std::vector<int>&);
@@ -16,6 +18,8 @@ class PmergeMe {
 
         const std::vector<int> getvBuffer();
         const std::deque<int> getqBuffer();
+
+        void make_pairs(std::vector<int>);
 
         ~PmergeMe();
 };
