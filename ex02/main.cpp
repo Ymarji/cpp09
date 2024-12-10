@@ -45,13 +45,13 @@ int main(int argc, char const *argv[])
         list.push_back(toInt(str));
     }
     
-    for (size_t i = 0; i < list.size(); i++)
-    {
-        std::cout << list[i] << std::endl;
-    }
+    // for (size_t i = 0; i < list.size(); i++)
+    // {
+    //     std::cout << list[i] << std::endl;
+    // }
 
     PmergeMe sortedList(list);
-    std::cout << sortedList.getvBuffer().size() << std::endl;
-    std::cout << sortedList.getqBuffer().size() << std::endl;
+    // std::cout << sortedList.getvBuffer().size() << std::endl;
+    // std::cout << sortedList.getqBuffer().size() << std::endl;
     return 0;
 }

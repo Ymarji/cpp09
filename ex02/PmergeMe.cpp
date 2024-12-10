@@ -46,7 +46,7 @@ void merge(std::vector<std::pair<int, int> > & highs,int start,int end, std::vec
 
     while (k < end)
     {
-        std::cout << i << "|" << j << std::endl;
+        // std::cout << i << "|" << j << std::endl;
         if (i < mid && (arr[i].first < arr[j].first || j >= end) ) {
             highs[k] = arr[i];
             i++;
@@ -70,9 +70,9 @@ void sort_highs(std::vector<std::pair<int, int> > &highs, int start, int end, st
     merge(highs, start, end, arr);
 }
 
-int nextIndex(int currentIndex) {
+size_t nextIndex(int currentIndex) {
     int index = (std::pow(2, currentIndex + 1) + std::pow(-1, currentIndex)) / 3;
-
+    std::cout << currentIndex << " " << index << std::endl;
     return index;
 }
 
@@ -90,13 +90,13 @@ void PmergeMe::make_pairs(std::vector<int> list) {
         it += 2;
     }
 
-    printContainer(p);
+    // printContainer(p);
     sort_highs(p, 0, p.size(), p);
     {
         std::vector<int> pend;
         this->vBuffer.clear();
         this->vBuffer.push_back(p[0].second);
-        for (int i = 0; i < p.size(); i++)
+        for (size_t i = 0; i < p.size(); i++)
         {
             this->vBuffer.push_back(p[i].first);
             if (i != 0)
@@ -105,18 +105,18 @@ void PmergeMe::make_pairs(std::vector<int> list) {
         if (this->isOdd) {
             pend.push_back(this->imposter);
         }
-        this->vBuffer.assign(p.begin(), p.end());
+        // this->vBuffer.assign(p.begin(), p.end());
 
         int i = 2;
-        std::vector<int>::iterator it = this->vBuffer.begin();
+        // std::vector<int>::iterator it = this->vBuffer.begin();
         std::vector<int>::iterator pe = pend.begin();
-
-        while (int jacI = nextIndex(i) < pend.size())
+       
+        while (size_t jacI = nextIndex(i) < pend.size())
         {
             std::vector<int>::iterator pe_it = pend.begin() + jacI;
             while (pe_it != pe)
             {
-                std::cout << *(pe_it);
+                std::cout << *(pe_it) << std::endl;
                 pe_it--;
             }
             pe = pend.begin() + jacI;
@@ -125,7 +125,7 @@ void PmergeMe::make_pairs(std::vector<int> list) {
         
     }
     
-    printContainer(p);
+    // printContainer(p);
 };
 
 
