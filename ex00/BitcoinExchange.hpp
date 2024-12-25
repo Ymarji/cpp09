@@ -17,9 +17,12 @@ class BitcoinExchange
     BitcoinExchange(const BitcoinExchange &);
     BitcoinExchange &operator=(const BitcoinExchange &);
 
+    bool isdigit(std::string, size_t);
+    void trimSpaces(std::string &);
     std::pair<int, double> dataSplit(std::string, char);
     void validateYear(std::string);
     void inputData(const char *);
+    bool isValidDate(int, int, int);
     
     ~BitcoinExchange();
 

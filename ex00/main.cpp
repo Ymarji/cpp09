@@ -9,9 +9,10 @@ int main(int argc, char *argv[]) {
   }
   try {
     BitcoinExchange btc; 
+    // BitcoinExchange btc1(btc); 
     btc.inputData(argv[1]);
-  } catch(std::exception e) {
-    e.what();
+  } catch(std::exception &e) {
+    std::cout << e.what() << std::endl;
   }
   return 0;
 }
