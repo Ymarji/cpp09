@@ -1,6 +1,10 @@
 #include "RPN.hpp"
 
 
+RPN::RPN() {
+    throw std::runtime_error("Syntax Error: No expression used to call constractor");
+}
+
 RPN::RPN(std::string expression) {
     this->decompose(expression);
     while (this->rpn.size() != 0)
@@ -9,6 +13,17 @@ RPN::RPN(std::string expression) {
         this->rpn.pop();
     }
     std::cout << std::endl;
+}
+
+RPN::RPN(const RPN &rhs) {
+    this->rpn = rhs.rpn;
+};
+
+RPN &RPN::operator= (const RPN &rhs) {
+    if (this != &rhs) {
+        this->rpn = rhs.rpn;
+    }
+    return *this;
 }
 
 int toInt(std::string str) {
@@ -23,6 +38,13 @@ int toInt(std::string str) {
 void RPN::decompose(std::string expression) {
     std::stringstream ss(expression);
     std::string token;
+
+    if (expression.size() == 0) {
+        std::cout << "expression empty";
+        return;
+    }
+    if (expression.find_last_not_of(" \t\n\r") == std::string::npos)
+        throw std::runtime_error("Syntax Error: RPN expression not found");
 
     while (std::getline(ss, token, static_cast<char>(32)))
     {
@@ -42,17 +64,21 @@ void RPN::decompose(std::string expression) {
                 this->rpn.push(a - b);
             else if (token == "*")
                 this->rpn.push(a * b);
-            else if (token == "/")
+            else if (token == "/"){
+                if (b == 0){
+                    throw std::runtime_error("Syntax Error: cannot divide by 0");
+                }
                 this->rpn.push(a / b);
+            }
         } else {
             if (!this->isDigit(token)) {
-                throw std::runtime_error("Syntax Error: RPN expretion containe non degit operands.");
+                throw std::runtime_error("Syntax Error: RPN expression containe invalid operands. ( " + token + " )");
             }
             this->rpn.push(toInt(token));
         }
     }
     if (this->rpn.size() > 1) {
-            throw std::runtime_error("Syntax Error: RPN expretion lacks operator to process the remaining values.");
+            throw std::runtime_error("Syntax Error: RPN expression lacks operator to process the remaining values.");
     }
     
 }
@@ -60,7 +86,7 @@ void RPN::decompose(std::string expression) {
 bool RPN::isDigit(const std::string& str) {
     std::string::const_iterator it = str.begin();
 
-    if (str.empty()){
+    if (str.empty() || str.size() > 1){
         return false;
     }
     while (it != str.end())
@@ -71,7 +97,6 @@ bool RPN::isDigit(const std::string& str) {
         it++;
     }
     return true;
-    // return !str.empty() && std::all_of(str.begin(), str.end(), isdigit);
 }
 
 RPN::~RPN() {

@@ -9,9 +9,11 @@ class RPN {
     private:
         std::stack<int> rpn;
     public:
+        RPN();
         RPN(std::string);
         RPN(const RPN &);
         RPN &operator= (const RPN &);
+
         void decompose(std::string);
         bool isDigit(const std::string&);
 
