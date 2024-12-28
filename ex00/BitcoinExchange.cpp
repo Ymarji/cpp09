@@ -71,7 +71,10 @@ void BitcoinExchange::validateYear(std::string str) {
 
 	this->trimSpaces(str);
 	if (str.size() < 10) {
-		str = "Error: bad input => " + str;
+		if (str.empty()) {
+			str = "Error: bad input => date is empty";
+		} else
+			str = "Error: bad input => " + str;
 		throw std::runtime_error(str);
 	}
 	pos = str.find_first_of('-');
@@ -96,24 +99,29 @@ std::pair<int, double> BitcoinExchange::dataSplit(std::string str, char sign)
 	double exchRate;
 
 	size_t pos = str.find(sign);
+	if (pos == std::string::npos){
+		throw std::runtime_error("Error: |" + str + "| wrong syntax.");
+	}
 	std::string datePart = str.substr(0, pos);
 	std::string exchangeRate = str.substr(pos + 1);
 
 	this->trimSpaces(exchangeRate);
 	this->validateYear(datePart);
 	std::sscanf(datePart.c_str(), "%d-%d-%d", &year, &month, &day);
-	if (exchangeRate[0] == '-' && exchangeRate.find_last_of('-') == 0) {
-		throw std::runtime_error("Error: not a positive number.");
+	if (exchangeRate.size() == 0 || exchangeRate.find_first_not_of("0123456789.") != std::string::npos ||
+		exchangeRate.find_first_of('.') != exchangeRate.find_last_of('.')) {
+		if (exchangeRate.find_last_of('-') != 0)
+			throw std::runtime_error("Error: |" + str + "| wrong syntax.");
 	}
-	if (exchangeRate.find_first_not_of("0123456789.") != std::string::npos || exchangeRate.find_first_of('.') != exchangeRate.find_last_of('.')) {
-		throw std::runtime_error("Error: not a number.");
+	if (exchangeRate[0] == '-') {
+		throw std::runtime_error("Error: not a positive number.");
 	}
 	exchRate = std::atof(exchangeRate.c_str());
 	if (exchRate > INT_MAX) {
 		throw std::runtime_error("Error: too large a number.");
 	}
 
-	return std::make_pair<long int, double>(10000 * year + 100 * month + day, std::atof(exchangeRate.c_str()));
+	return std::make_pair<long int, double>(10000 * year + 100 * month + day, exchRate);
 }
 
 std::string formatString(long int date) {
@@ -132,11 +140,27 @@ void BitcoinExchange::inputData(const char * filename) {
 	std::ifstream file(filename, std::ios::in);
 	std::string str;
 	std::pair<double, double> temp;
-	
+
+	if (!file.good()){
+		str.append(filename);
+		throw std::runtime_error("Error: could not open " + str + " file.");
+		return;
+	}
+	if (file.peek() == std::ifstream::traits_type::eof()) {
+		str.append(filename);
+		throw std::runtime_error("Error: "+ str +" file is empty.");
+		return;
+	}
 
 	std::getline(file, str);
 	if (str != "date | value") {
 		throw std::runtime_error("Error: invalid first line <<date | value>>.");
+		return;
+	}
+	if (file.eof() || file.peek() == std::ifstream::traits_type::eof()) {
+		std::string err = filename;
+		throw std::runtime_error("Error: "+ err +" file is empty.");
+		return;
 	}
 	while (std::getline(file, str)) {
 		try {
@@ -145,6 +169,9 @@ void BitcoinExchange::inputData(const char * filename) {
 				continue;
 			}
 			temp = this->dataSplit(str, '|');
+			if (temp.second > 1000) {
+				throw std::runtime_error("Error: too large a number, max value 1000.");
+			}
 			std::map<long, double>::iterator lowerIt=  db.lower_bound(temp.first);
 			if (lowerIt == db.end())
 				std::cout << formatString(temp.first) << " => No record" <<  std::endl;
