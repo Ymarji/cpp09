@@ -1,44 +1,72 @@
 #include "PmergeMe.hpp"
 #include <cmath>
 
-
-template <typename Container>
-void printContainer(const Container& container) {
-    typename Container::const_iterator it = container.begin();
-
-    std::cout << "*********** first *************" << std::endl;
-    for (; it != container.end(); ++it) {
-        std::cout << (*it).first << " ";
-    }
-    std::cout << std::endl;
-    it = container.begin();
-    std::cout << "*********** sec *************" << std::endl;
-    for (; it != container.end(); ++it) {
-        std::cout << (*it).second << " ";
-    }
-    std::cout << std::endl;
-}
-
 PmergeMe::PmergeMe() {
+    std::cout << "nothing to sort!" << std::endl;
+    return;
 }
 
-PmergeMe::PmergeMe(std::vector<int>& list): isOdd(list.size() % 2 != 0) {
+PmergeMe::PmergeMe(const PmergeMe& rhs) {
+    this->vBuffer = rhs.vBuffer;
+    this->qBuffer = rhs.qBuffer;
+}
+
+template <class container>
+void PmergeMe::printList(const container list) {
+    size_t i = 0;
+    while (i < list.size())
+    {
+        std::cout << list[i] << " ";
+        i++;
+    }
+    if (list.size() > 10)
+        std::cout << "[...]";
+    std::cout << std::endl;
+}
+
+PmergeMe::PmergeMe(std::vector<int> list): isOdd(list.size() % 2 != 0) {
+    clock_t cStart;
+    clock_t cEnd;
+
+
+    std::cout << "before    :";
+    this->printList(list);
+    
     if (isOdd) {
         this->imposter = *(list.end() - 1);
         list.pop_back();
     }
-    this->vBuffer.assign(list.begin(), list.end());
-    this->qBuffer.assign(list.begin(), list.end());
-    this->make_pairs(this->vBuffer);
+
+    cStart = clock();
+    if (list.size() == 0){
+      this->qBuffer.push_back(this->imposter);
+    } else {
+        std::deque<int> dec(list.begin(), list.end());
+        this->sortDeque(dec);
+    }
+    cEnd = clock();
+
+    std::cout << "after     :";
+    this->printList(this->qBuffer);
+
+    std::cout << "Time to process a range of " << this->qBuffer.size() << " elements with std::deque  : " <<
+        std::fixed << std::setprecision(4) << (double)(cEnd - cStart) / CLOCKS_PER_SEC * 1000<< " ms " << std::endl;
+
+    cStart = clock();
+    if (list.size() == 0){
+        this->vBuffer.push_back(this->imposter);
+    } else {
+        std::vector<int> vec(list);
+        this->sortVector(vec);
+    }
+    cEnd = clock();
+
+    std::cout << "Time to process a range of " << this->vBuffer.size() << " elements with std::vector : " <<
+        std::fixed << std::setprecision(4) << (double)(cEnd - cStart) / CLOCKS_PER_SEC * 1000 << " ms " << std::endl;
     return ;
 }
 
-PmergeMe::PmergeMe(const PmergeMe& rop) {
-    this->vBuffer = rop.vBuffer;
-    this->qBuffer = rop.qBuffer;
-}
-
-void merge(std::vector<std::pair<int, int> > & highs,int start,int end, std::vector<std::pair<int, int> > arr) {
+void PmergeMe::mergeVector(std::vector<std::pair<int, int> > & highs,int start,int end, std::vector<std::pair<int, int> > arr) {
     int i = start;
     int mid = (end + start) / 2;
     int j = mid;
@@ -46,8 +74,7 @@ void merge(std::vector<std::pair<int, int> > & highs,int start,int end, std::vec
 
     while (k < end)
     {
-        // std::cout << i << "|" << j << std::endl;
-        if (i < mid && (arr[i].first < arr[j].first || j >= end) ) {
+        if (i < mid && ((j < end && arr[i].first < arr[j].first) || j >= end) ) {
             highs[k] = arr[i];
             i++;
         } else {
@@ -56,27 +83,26 @@ void merge(std::vector<std::pair<int, int> > & highs,int start,int end, std::vec
         }
         k++;
     }
-    std::cout << "-----------------------------------------------------" << std::endl;
 }
 
-void sort_highs(std::vector<std::pair<int, int> > &highs, int start, int end, std::vector<std::pair<int, int> > arr) {
+void PmergeMe::vectorMergeSort(std::vector<std::pair<int, int> > &highs, int start, int end, std::vector<std::pair<int, int> > arr) {
     int mid = (end + start) / 2;
 
     if (end - start <= 1)
         return ;
-    sort_highs(arr, start, mid, highs);
-    sort_highs(arr, mid, end, highs);
+    this->vectorMergeSort(arr, start, mid, highs);
+    this->vectorMergeSort(arr, mid, end, highs);
     
-    merge(highs, start, end, arr);
+    this->mergeVector(highs, start, end, arr);
 }
 
-size_t nextIndex(int currentIndex) {
+size_t PmergeMe::nextIndex(int currentIndex) {
     int index = (std::pow(2, currentIndex + 1) + std::pow(-1, currentIndex)) / 3;
-    std::cout << currentIndex << " " << index << std::endl;
     return index;
 }
 
-void PmergeMe::make_pairs(std::vector<int> list) {
+void PmergeMe::sortVector(std::vector<int> list) {
+
     std::vector<std::pair<int, int> > p;
     std::vector<int>::iterator it = list.begin();
 
@@ -90,49 +116,141 @@ void PmergeMe::make_pairs(std::vector<int> list) {
         it += 2;
     }
 
-    // printContainer(p);
-    sort_highs(p, 0, p.size(), p);
+    this->vectorMergeSort(p, 0, p.size(), p);
     {
         std::vector<int> pend;
-        this->vBuffer.clear();
-        this->vBuffer.push_back(p[0].second);
+        if (p.size() > 0)
+            this->vBuffer.push_back(p[0].second);
         for (size_t i = 0; i < p.size(); i++)
         {
             this->vBuffer.push_back(p[i].first);
-            if (i != 0)
-                pend.push_back(p[i].second);
+            pend.push_back(p[i].second);
         }
         if (this->isOdd) {
             pend.push_back(this->imposter);
         }
-        // this->vBuffer.assign(p.begin(), p.end());
 
         int i = 2;
-        // std::vector<int>::iterator it = this->vBuffer.begin();
+        size_t jacI = this->nextIndex(i);
+        it = this->vBuffer.begin() + 1;
         std::vector<int>::iterator pe = pend.begin();
        
-        while (size_t jacI = nextIndex(i) < pend.size())
+        while (jacI < pend.size())
         {
-            std::vector<int>::iterator pe_it = pend.begin() + jacI;
+            int arraySize = std::pow(2, i) - 1;
+            std::vector<int>::iterator pe_it = pend.begin() + (jacI - 1);
             while (pe_it != pe)
             {
-                std::cout << *(pe_it) << std::endl;
+                std::vector<int>::iterator insertionPoint = std::upper_bound(this->vBuffer.begin(), this->vBuffer.begin() + arraySize, *pe_it);
+                this->vBuffer.insert(insertionPoint, *pe_it);
                 pe_it--;
             }
-            pe = pend.begin() + jacI;
+            pe = pend.begin() + jacI - 1;
             i++;
+            jacI = this->nextIndex(i);
         }
-        
+        ++pe;
+        while (pe != pend.end())
+        {
+            std::vector<int>::iterator insertionPoint = std::upper_bound(this->vBuffer.begin(), this->vBuffer.end(), *pe);
+            this->vBuffer.insert(insertionPoint, *pe);
+            pe++;
+        }
     }
+};
+
+void PmergeMe::mergeDeque(std::deque<std::pair<int, int> > & highs,int start,int end, std::deque<std::pair<int, int> > arr) {
+    int i = start;
+    int mid = (end + start) / 2;
+    int j = mid;
+    int k = start;
+
+    while (k < end)
+    {
+        if (i < mid && ((j < end && arr[i].first < arr[j].first)|| j >= end) ) {
+            highs[k] = arr[i];
+            i++;
+        } else {
+            highs[k] = arr[j];
+            j++;
+        }
+        k++;
+    }
+}
+
+void PmergeMe::dequeMergeSort(std::deque<std::pair<int, int> > &highs, int start, int end, std::deque<std::pair<int, int> > arr) {
+    int mid = (end + start) / 2;
+
+    if (end - start <= 1)
+        return ;
+    this->dequeMergeSort(arr, start, mid, highs);
+    this->dequeMergeSort(arr, mid, end, highs);
     
-    // printContainer(p);
+    this->mergeDeque(highs, start, end, arr);
+}
+
+void PmergeMe:: sortDeque(std::deque<int> list) {
+    std::deque<std::pair<int, int> > p;
+    std::deque<int>::iterator it = list.begin();
+
+    while (it != list.end())
+    {   
+        if ((*(it + 1) > *(it))) {
+            p.push_back(std::make_pair(*(it + 1), *(it)));
+        } else {
+            p.push_back(std::make_pair(*(it), *(it + 1)));
+        }
+        it += 2;
+    }
+    this->dequeMergeSort(p, 0, p.size(), p);
+    {
+        std::deque<int> pend;
+        if (p.size() > 0)
+            this->qBuffer.push_back(p[0].second);
+        for (size_t i = 0; i < p.size(); i++)
+        {
+            this->qBuffer.push_back(p[i].first);
+            pend.push_back(p[i].second);
+        }
+        if (this->isOdd) {
+            pend.push_back(this->imposter);
+        }
+
+        int i = 2;
+        size_t jacI = this->nextIndex(i);
+        it = this->qBuffer.begin() + 1;
+        std::deque<int>::iterator pe = pend.begin();
+       
+        while (jacI < pend.size())
+        {
+            int arraySize = std::pow(2, i) - 1;
+            std::deque<int>::iterator pe_it = pend.begin() + (jacI - 1);
+            while (pe_it != pe)
+            {
+                std::deque<int>::iterator insertionPoint = std::upper_bound(this->qBuffer.begin(), this->qBuffer.begin() + arraySize, *pe_it);
+                this->qBuffer.insert(insertionPoint, *pe_it);
+                pe_it--;
+            }
+            pe = pend.begin() + jacI - 1;
+            i++;
+            jacI = this->nextIndex(i);
+        }
+        ++pe;
+        while (pe != pend.end())
+        {
+            std::deque<int>::iterator insertionPoint = std::upper_bound(this->qBuffer.begin(), this->qBuffer.end(), *pe);
+            this->qBuffer.insert(insertionPoint, *pe);
+            pe++;
+        }
+    }
 };
 
 
-
-PmergeMe PmergeMe::operator=(const PmergeMe& rop) {
-    this->vBuffer = rop.vBuffer;
-    this->qBuffer = rop.qBuffer;
+PmergeMe PmergeMe::operator=(const PmergeMe& rhs) {
+    if (this != &rhs){
+        this->vBuffer = rhs.vBuffer;
+        this->qBuffer = rhs.qBuffer;
+    }
     return (*this);
 }
 
@@ -142,10 +260,6 @@ const std::vector<int> PmergeMe::getvBuffer() {
 
 const std::deque<int> PmergeMe::getqBuffer() {
     return this->qBuffer;
-}
-
-void sortList() {
-    
 }
 
 PmergeMe::~PmergeMe() {

@@ -1,23 +1,17 @@
 #include "PmergeMe.hpp"
 #include <cctype>
+#include <cstdlib>
+#include <cerrno>
+#include <climits>
 
 bool isNumeric(const std::string& str) {
     if (str.empty()) return false;
     for (size_t i = 0; i < str.size(); ++i) {
-        if (!std::isdigit(str[i]) && str[i] != ' ') {
+        if (!std::isdigit(str[i]) && str[i] != 32) {
             return false;
         }
     }
     return true;
-}
-
-int toInt(std::string str) {
-    std::stringstream ss(str);
-    int myInt;
-
-    ss >> myInt;
-
-    return myInt;
 }
 
 int main(int argc, char const *argv[])
@@ -28,13 +22,13 @@ int main(int argc, char const *argv[])
     std::string str;
 
     if (argc < 2) {
-        std::cerr << "missing argument" << std::endl;
+        std::cout << "missing argument" << std::endl;
         return 1;
     }
 
     while (argv[++i]) {
          if (!isNumeric(argv[i])) {
-            std::cerr << "error numeric" << std::endl;
+            std::cout << "argument syntax error, contains non digit" << std::endl;
             return 1;
         }
         ss << argv[i] << " ";
@@ -42,16 +36,17 @@ int main(int argc, char const *argv[])
 
     while (std::getline(ss, str, ' '))
     {
-        list.push_back(toInt(str));
+        double value = 0;
+        if (isNumeric(str)){
+            value = strtol(str.c_str(), NULL, 10);
+        }
+        if (errno == ERANGE || value > INT_MAX)  {
+            std::cout << "argument " << str << " out of range" << std::endl;
+            return 1;
+        }
+        list.push_back(value);
     }
-    
-    // for (size_t i = 0; i < list.size(); i++)
-    // {
-    //     std::cout << list[i] << std::endl;
-    // }
 
     PmergeMe sortedList(list);
-    // std::cout << sortedList.getvBuffer().size() << std::endl;
-    // std::cout << sortedList.getqBuffer().size() << std::endl;
     return 0;
 }
